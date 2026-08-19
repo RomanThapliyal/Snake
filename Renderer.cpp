@@ -9,10 +9,14 @@ void Renderer::draw(sf::RenderWindow &window,const Snake& snake)
     window.clear(GameColours::Black);
     if(snake.grid==true)
         drawGrid(window,snake);
-    drawWalls(window,snake);
     drawSnake(window,snake);
+    drawWalls(window,snake);
     drawFood(window,snake);
     drawText(window, gamefont, "Score:" + std::to_string(snake.getScore()), 34,Anchor::TopRight, GameColours::White,{-50.f,-50.f});
+    if(snake.wrap)
+    drawText(window, gamefont, "Wrap", 14 ,Anchor::TopRight, GameColours::White,{-70.f,-100.f});
+    if(snake.grid)
+    drawText(window, gamefont, "Grid", 14 ,Anchor::TopRight, GameColours::White,{-70.f,-140.f});
 }
 void Renderer::drawGrid(sf::RenderWindow &window, const Snake &snake){
     for(int i=1;i<snake.getRows();i++){
@@ -30,26 +34,73 @@ void Renderer::drawSnake(sf::RenderWindow &window,const Snake& snake)
 {
     for (int i = 0; i < snake.getSnakeLen(); i++)
     {
-        sf::RectangleShape segment({snake.getCellSize(), snake.getCellSize()});
-        if (i == 0)
-        {
+        sf::RectangleShape segment({snake.getCellSize(),snake.getCellSize()});
+
+        if(i==0)
             segment.setFillColor(GameColours::Green);
-        }
         else
-        {
-            segment.setFillColor(sf::Color(0, 180, 0));
-        }
+            segment.setFillColor(sf::Color(0,180,0));
+
         float t=snake.getInterPolation();
+
         float renderX=snake.prevSnakeX[i]+(snake.snakeX[i]-snake.prevSnakeX[i])*t;
         float renderY=snake.prevSnakeY[i]+(snake.snakeY[i]-snake.prevSnakeY[i])*t;
+
+        bool wrapX=std::abs(snake.snakeX[i]-snake.prevSnakeX[i])>1;
+        bool wrapY=std::abs(snake.snakeY[i]-snake.prevSnakeY[i])>1;
+
+        if(wrapX)
+        {
+            if(snake.prevSnakeX[i]==2)
+                renderX=2-t;
+            else
+                renderX=snake.getCols()-1+t;
+        }
+
+        if(wrapY)
+        {
+            if(snake.prevSnakeY[i]==2)
+                renderY=2-t;
+            else
+                renderY=snake.getRows()-1+t;
+        }
+
         if(snake.gameState==snake.end){
             renderX=snake.snakeX[i];
             renderY=snake.snakeY[i];
         }
-        float x = (renderX - 1) * snake.getCellSize();
-        float y = (renderY - 1) * snake.getCellSize();
-        segment.setPosition({x, y});
+
+        float x=(renderX-1)*snake.getCellSize();
+        float y=(renderY-1)*snake.getCellSize();
+
+        segment.setPosition({x,y});
         window.draw(segment);
+
+        if(wrapX)
+        {
+            float oppositeX;
+
+            if(renderX<2)
+                oppositeX=renderX+(snake.getCols()-2);
+            else
+                oppositeX=renderX-(snake.getCols()-2);
+
+            segment.setPosition({(oppositeX-1)*snake.getCellSize(),y});
+            window.draw(segment);
+        }
+
+        if(wrapY)
+        {
+            float oppositeY;
+
+            if(renderY<2)
+                oppositeY=renderY+(snake.getRows()-2);
+            else
+                oppositeY=renderY-(snake.getRows()-2);
+
+            segment.setPosition({x,(oppositeY-1)*snake.getCellSize()});
+            window.draw(segment);
+        }
         if (i == 0)
 {
     float cell = snake.getCellSize();
@@ -218,6 +269,7 @@ void Renderer::menueScreen(sf::RenderWindow& window){
     drawText(window,gamefont,"Press enter to start or X to exit",15,Anchor::Center,GameColours::White,{0.f,-110.f});
     drawButton(window,"Start",GameColours::Magenta,Anchor::BottomLeft,{600.f,190.f},{180.f,50.f},ButtonAction::Start);
     drawButton(window,"Quit",GameColours::Magenta,Anchor::BottomRight,{-600.f,190.f},{180.f,50.f},ButtonAction::Exit);
+    drawText(window, gamefont, "WASD / Arrow Keys: Move | G: Toggle Grid | P: Pause | T: Toggle Wrap", 9 ,Anchor::BottomLeft, GameColours::White,{50.f,30.f});
     window.display();
 }
 void Renderer::pauseScreen(sf::RenderWindow& window, const Snake &snake){

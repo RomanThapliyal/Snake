@@ -12,6 +12,7 @@ struct InputState
     bool exitPressed     = false;
     bool mouseClicked = false;
     bool gridToggle = false;
+    bool wrapToggle=false;
     sf::Vector2f clickPosition;
 };
 class Input

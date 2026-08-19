@@ -15,6 +15,7 @@ namespace GameColours{
 struct InputState;
 class Snake{
     public:
+    bool wrap=false;
     bool grid=false;
     int snakeX[100]={9,8,7};
     int snakeY[100]={6,6,6};
@@ -48,7 +49,7 @@ class Snake{
     void menue(const InputState& menue);
     void gameOver(const InputState& in);
     void restart();
-    void pauseUnpause(const InputState& pause);
+    void pauseUnpause(const InputState& pause,bool resume);
     int getScore()const;
     int getSnakeLen()const;
     float getCellSize()const;

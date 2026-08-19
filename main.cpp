@@ -31,7 +31,7 @@ int main()
             s.menue(menue);
         }
         
-        while (s.getGameState() == Snake::gameOn)
+        while (s.getGameState() == Snake::gameOn&&window.isOpen())
         {
             InputState in = inputSystem.poll(window);
             s.applyInput(in);
@@ -66,14 +66,14 @@ int main()
                 auto action = renderer.getClickedAction(pause.clickPosition);
                 if (action.has_value() && action.value() == ButtonAction::Start)
                 {
-                    s.pauseUnpause(pause);
+                    s.pauseUnpause(pause,true);
                 }
                 else if (action.has_value() && action.value() == ButtonAction::Exit)
                 {
                     window.close();
                 }
             }
-            s.pauseUnpause(pause);
+            s.pauseUnpause(pause,false);
         }
     }
     window.close();

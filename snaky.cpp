@@ -36,7 +36,8 @@ void Snake::logic()
 void Snake::applyInput(const InputState& in)
 {
     if(in.gridToggle){std::cout<<"Toggle\n";if(grid==true){grid=false;}else{grid=true;}}
-    if(in.pausePressed){pauseUnpause(in);}
+    if(in.wrapToggle){if(wrap==true){wrap=false;}else{wrap=true;}}
+    if(in.pausePressed){pauseUnpause(in,false);}
     if (!in.hasDirRequest) return; 
     if (in.requestedDir == Up && dir != Down){nextDir = Up;}
     else if (in.requestedDir == Down && dir != Up){nextDir = Down;}
@@ -105,6 +106,13 @@ bool Snake::wallCollision()
 {
     if (nextHeadX == 1 || nextHeadX == cols || nextHeadY == 1 || nextHeadY == rows)
     {
+        if(wrap){
+            if(nextHeadX==1){nextHeadX=cols-1;}
+            else if(nextHeadX==cols){nextHeadX=2;}
+            if(nextHeadY==1){nextHeadY=rows-1;}
+            else if(nextHeadY==rows){nextHeadY=2;}
+            return false;
+        }
         return true;
     }
     return false;
@@ -170,8 +178,8 @@ void Snake::restart()
     }
     snakeLen = 3;
 }
-void Snake::pauseUnpause(const InputState& Pause){
-    if(Pause.pausePressed){
+void Snake::pauseUnpause(const InputState& Pause,bool resume){
+    if(Pause.pausePressed||resume){
         if(gameState==pause){
             clock.start();
             gameState=gameOn;

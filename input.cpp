@@ -56,6 +56,10 @@ InputState Input::poll(sf::RenderWindow& window)
                 state.gridToggle=true;
                 std::cout<<"G\n";
             }
+             else if (keyPressed->scancode == sf::Keyboard::Scancode::T)
+            {
+                state.wrapToggle = true;
+            }
         }
         if (const auto* mousePressed = event->getIf<sf::Event::MouseButtonPressed>())
         {

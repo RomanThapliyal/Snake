@@ -23,12 +23,12 @@ class Snake{
     enum Direction{Up,Down,Left,Right};
     enum GameState{menu,gameOn,pause,end,exit};
     private:
+    sf::Clock clock;
     const float cellSize=40.f;
     int gameSpeed;
     int score=0;
     int oldTailX,oldTailY,nextHeadX,nextHeadY;
     int foodX,foodY;
-    sf::Clock clock;
     const int rows=20, cols=40;
     int snakeLen=3;
     Direction dir=Right;

@@ -6,8 +6,9 @@ using namespace std;
 
 void Snake::setUp()
 {
+    clock.start();
     gameState=menu;
-    gameSpeed = 90;
+    gameSpeed = 100;
     srand(time(0));
     food();
 }
@@ -26,6 +27,7 @@ void Snake::logic()
     if (wallCollision() || bodyCollison())
     {
         gameState = end;
+        clock.stop();
         return;
     }
     moveSnake();
@@ -149,12 +151,13 @@ void Snake::gameOver(const InputState& in)
 void Snake::restart()
 {
     food();
-    gameSpeed=90;
+    gameSpeed=100;
     cout << "restart\n";
     gameState = gameOn;
     dir = Right;
     nextDir = Right;
     score = 0;
+    clock.start();
     for (int i = 0; i < 3; i++)
     {
         snakeX[i] = 9 - i;
@@ -169,8 +172,14 @@ void Snake::restart()
 }
 void Snake::pauseUnpause(const InputState& Pause){
     if(Pause.pausePressed){
-        if(gameState==pause){gameState=gameOn;}
-        else gameState=pause;
+        if(gameState==pause){
+            clock.start();
+            gameState=gameOn;
+        }
+        else {
+            clock.stop();
+            gameState=pause;
+        }
     }
 }
 int Snake::getScore()const{return score;}
@@ -186,5 +195,6 @@ int Snake::getFoodY()const{return foodY;}
 float Snake::getInterPolation()const{
     float t= clock.getElapsedTime().asMilliseconds()/(float)gameSpeed;
     if(t>1.f) t=1.f;
+    std::cout<<t<<'\n';
     return t;
 }

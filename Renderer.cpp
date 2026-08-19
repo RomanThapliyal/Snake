@@ -13,7 +13,6 @@ void Renderer::draw(sf::RenderWindow &window,const Snake& snake)
     drawSnake(window,snake);
     drawFood(window,snake);
     drawText(window, gamefont, "Score:" + std::to_string(snake.getScore()), 34,Anchor::TopRight, GameColours::White,{-50.f,-50.f});
-    window.display();
 }
 void Renderer::drawGrid(sf::RenderWindow &window, const Snake &snake){
     for(int i=1;i<snake.getRows();i++){
@@ -43,6 +42,10 @@ void Renderer::drawSnake(sf::RenderWindow &window,const Snake& snake)
         float t=snake.getInterPolation();
         float renderX=snake.prevSnakeX[i]+(snake.snakeX[i]-snake.prevSnakeX[i])*t;
         float renderY=snake.prevSnakeY[i]+(snake.snakeY[i]-snake.prevSnakeY[i])*t;
+        if(snake.gameState==snake.end){
+            renderX=snake.snakeX[i];
+            renderY=snake.snakeY[i];
+        }
         float x = (renderX - 1) * snake.getCellSize();
         float y = (renderY - 1) * snake.getCellSize();
         segment.setPosition({x, y});
@@ -198,7 +201,10 @@ std::optional<ButtonAction> Renderer::getClickedAction(sf::Vector2f clickPos)
     return std::nullopt;
 }
 void Renderer::gameOverScreen(sf::RenderWindow& window,const Snake &snake){
-    window.clear(GameColours::Black);
+    draw(window,snake);
+    sf::RectangleShape overlay({static_cast<float>(window.getSize().x),static_cast<float>(window.getSize().y)});
+    overlay.setFillColor(sf::Color(0,0,0,150));
+    window.draw(overlay);
     drawText(window, gamefont, "Game Over", 50,Anchor::Center,GameColours::Red,{0.f,0.f});
     drawText(window, gamefont, "Score:" + std::to_string(snake.getScore()), 40, Anchor::Center,GameColours::White,{0.f,-100.f});
     drawButton(window,"Restart",GameColours::Magenta,Anchor::BottomLeft,{600.f,190.f},{180.f,50.f},ButtonAction::Start);
@@ -215,13 +221,7 @@ void Renderer::menueScreen(sf::RenderWindow& window){
     window.display();
 }
 void Renderer::pauseScreen(sf::RenderWindow& window, const Snake &snake){
-    window.clear(GameColours::Black);
-    if(snake.grid==true)
-        drawGrid(window,snake);
-    drawWalls(window,snake);
-    drawSnake(window,snake);
-    drawFood(window,snake);
-    drawText(window, gamefont, "Score:" + std::to_string(snake.getScore()), 20,Anchor::TopRight, GameColours::White,{-10.f,-20.f});
+    draw(window,snake);
     sf::RectangleShape overlay({static_cast<float>(window.getSize().x),static_cast<float>(window.getSize().y)});
     overlay.setFillColor(sf::Color(0,0,0,150));
     window.draw(overlay);

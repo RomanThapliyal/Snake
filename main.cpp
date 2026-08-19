@@ -37,6 +37,7 @@ int main()
             s.applyInput(in);
             s.update();
             renderer.draw(window,s);
+            window.display();
         }
         while(s.getGameState() == Snake::end && window.isOpen())
         {
@@ -65,7 +66,7 @@ int main()
                 auto action = renderer.getClickedAction(pause.clickPosition);
                 if (action.has_value() && action.value() == ButtonAction::Start)
                 {
-                    s.gameState=s.gameOn;
+                    s.pauseUnpause(pause);
                 }
                 else if (action.has_value() && action.value() == ButtonAction::Exit)
                 {

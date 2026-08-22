@@ -4,20 +4,22 @@ void Renderer::setUp(){
     if (!gamefont.openFromFile("Assets/Fonts/PressStart2P-Regular.ttf"))
     std::cout << "failed to load font\n";
 }
-void Renderer::draw(sf::RenderWindow &window,const Snake& snake)
+void Renderer::draw(sf::RenderWindow& window,const Snake& snake)
 {
     window.clear(GameColours::Black);
-    if(snake.grid==true)
+    if(snake.grid)
         drawGrid(window,snake);
     drawSnake(window,snake);
     drawWalls(window,snake);
     drawFood(window,snake);
-    drawText(window, gamefont, "Score:" + std::to_string(snake.getScore()), 34,Anchor::TopRight, GameColours::White,{-50.f,-50.f});
+    drawMagnet(window,snake);
+    drawText(window,gamefont,"Score:"+std::to_string(snake.getScore()),34,Anchor::TopRight,GameColours::White,{-50.f,-50.f});
     if(snake.wrap)
-    drawText(window, gamefont, "Wrap", 14 ,Anchor::TopRight, GameColours::White,{-70.f,-100.f});
+        drawText(window,gamefont,"Wrap",14,Anchor::TopRight,GameColours::White,{-70.f,-100.f});
     if(snake.grid)
-    drawText(window, gamefont, "Grid", 14 ,Anchor::TopRight, GameColours::White,{-70.f,-140.f});
+        drawText(window,gamefont,"Grid",14,Anchor::TopRight,GameColours::White,{-70.f,-140.f});
 }
+
 void Renderer::drawGrid(sf::RenderWindow &window, const Snake &snake){
     for(int i=1;i<snake.getRows();i++){
         for(int j=1;j<snake.getCols();j++){
@@ -172,30 +174,60 @@ void Renderer::drawWalls(sf::RenderWindow &window,const Snake& snake)
             {
                 sf::RectangleShape wall({snake.getCellSize(), snake.getCellSize()});
                 wall.setFillColor(GameColours::Brown);
+                wall.setOutlineColor(sf::Color(128,128,128,150));
+                wall.setOutlineThickness(2.f);
                 wall.setPosition({(j - 1) * snake.getCellSize(), (i - 1) * snake.getCellSize()});
                 window.draw(wall);
             }
         }
     }
 }
-void Renderer::drawFood(sf::RenderWindow &window,const Snake& snake)
+void Renderer::drawFood(sf::RenderWindow& window,const Snake& snake)
 {
-    float cell = snake.getCellSize();
-    float centerX = (snake.getFoodX() - 1) * cell + cell/2;
-    float centerY = (snake.getFoodY() - 1) * cell + cell/2;
+    float cell=snake.getCellSize();
+    float centerX=(snake.getFoodX()-1)*cell+cell/2;
+    float centerY=(snake.getFoodY()-1)*cell+cell/2;
 
-    float glowRadius = cell * 0.7f;
+    float glowRadius=cell*0.7f;
+
     sf::CircleShape glow(glowRadius);
     glow.setFillColor(sf::Color(255,0,0,70));
     glow.setPosition({centerX-glowRadius,centerY-glowRadius});
     window.draw(glow);
 
-    float fruitRadius = cell * 0.4f;
+    float fruitRadius=cell*0.4f;
+
     sf::CircleShape fruit(fruitRadius);
     fruit.setFillColor(sf::Color::Red);
     fruit.setPosition({centerX-fruitRadius,centerY-fruitRadius});
     window.draw(fruit);
 }
+void Renderer::drawMagnet(sf::RenderWindow& window,const Snake& snake)
+{
+    if(snake.getMagnetPowerActive())
+       drawText(window,gamefont,"MAGNET",18,Anchor::TopLeft,GameColours::Yellow,{20.f,-20.f});
+    if(snake.getMagnetState()!=Snake::Available)
+        return;
+
+    float cell=snake.getCellSize();
+    float centerX=(snake.getMagnetX()-1)*cell+cell/2;
+    float centerY=(snake.getMagnetY()-1)*cell+cell/2;
+
+    float glowRadius=cell*0.7f;
+    sf::CircleShape glow(glowRadius);
+    glow.setFillColor(sf::Color(255,0,0,70));
+    glow.setPosition({centerX-glowRadius,centerY-glowRadius});
+    window.draw(glow);
+
+    float magnetRadius=cell*0.4f;
+    sf::CircleShape magnet(magnetRadius);
+    magnet.setFillColor(GameColours::Magenta);
+    magnet.setPosition({centerX-magnetRadius,centerY-magnetRadius});
+    window.draw(magnet);
+
+    drawText(window,gamefont,"M",20,Anchor::none,GameColours::White,{centerX,centerY});
+}
+
 void Renderer::drawText(sf::RenderWindow &window,const sf::Font &font,std::string text,int size,Anchor anchor,sf::Color colour,sf::Vector2f offset)
 {
     float x,y;
@@ -210,6 +242,7 @@ void Renderer::drawText(sf::RenderWindow &window,const sf::Font &font,std::strin
     else if(anchor==Anchor::Center){x=(windowSize.x-bounds.size.x)/2+offset.x;y=(windowSize.y-bounds.size.y)/2-offset.y;}
     else if(anchor==Anchor::BottomLeft){x=offset.x;y=windowSize.y-bounds.size.y-offset.y;}
     else if(anchor==Anchor::BottomRight){x=windowSize.x-bounds.size.x+offset.x;y=windowSize.y-bounds.size.y-offset.y;}
+    else if(anchor==Anchor::none){x=offset.x-(bounds.size.x)/2,y=offset.y-(bounds.size.y)/2;}
     Text.setPosition({x,y});
     window.draw(Text);
 }

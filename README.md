@@ -192,7 +192,6 @@ This gradually increases the difficulty as the game progresses.
 
 ## 🖥️ Screenshots
 
-Add your screenshots here:
 
 ### 🏠 Main Menu
 
@@ -473,15 +472,6 @@ The biggest goal was understanding how the different parts of a game fit togethe
 * [ ] 📦 Cleaner build/package system
 
 ---
-
-## 📜 License
-
-This project is available under the license included in this repository.
-
-Third-party assets, including fonts, remain subject to their respective licenses.
-
----
-
 ## 👨‍💻 About
 
 **Snaky** is a personal C++ project created while learning 2D game development with SFML.

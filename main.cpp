@@ -2,6 +2,52 @@
 #include "Input.hpp"
 #include "Renderer.hpp"
 #include <iostream>
+
+void handleMenueInput(InputState &input,Renderer &renderer,Snake &s,sf::RenderWindow &window){
+    if (input.mouseClicked)
+    {
+        auto action = renderer.getClickedAction(input.clickPosition);
+        if (action.has_value() && action.value() == ButtonAction::Start)
+        {
+           s.restart();
+        }
+        else if (action.has_value() && action.value() == ButtonAction::Exit)
+       {
+            window.close();
+       }
+    }
+}
+
+void handleGameOverInput(InputState &input,Renderer &renderer,Snake &s,sf::RenderWindow &window){
+    if (input.mouseClicked)
+    {
+        auto action = renderer.getClickedAction(input.clickPosition);
+        if (action.has_value() && action.value() == ButtonAction::Start)
+        {
+            s.restart();
+        }
+        else if (action.has_value() && action.value() == ButtonAction::Exit)
+        {
+            window.close();
+        }
+     }
+}
+
+void handlePauseInput(InputState &input,Renderer &renderer,Snake &s,sf::RenderWindow &window){
+    if (input.mouseClicked)
+    {
+       auto action = renderer.getClickedAction(input.clickPosition);
+         if (action.has_value() && action.value() == ButtonAction::Start)
+         {
+             s.pauseUnpause(input,true);
+         }
+         else if (action.has_value() && action.value() == ButtonAction::Exit)
+         {
+             window.close();
+       }
+    }
+}
+
 int main()
 {
     Snake s;
@@ -11,70 +57,40 @@ int main()
     renderer.setUp();
     sf::RenderWindow window(sf::VideoMode({static_cast<unsigned int>(s.getCols() * s.getCellSize()), static_cast<unsigned int>(s.getRows() * s.getCellSize())}), "Snake");
 
-    while (window.isOpen()&&s.getGameState()!=Snake::exit)
+    while (window.isOpen()&&s.getGameState()!=Snake::Exit)
     {
-        while(s.getGameState()==Snake::menu&&window.isOpen()){
-            renderer.menueScreen(window);
-            InputState menue=inputSystem.poll(window);
-            if (menue.mouseClicked)
-            {
-                auto action = renderer.getClickedAction(menue.clickPosition);
-                if (action.has_value() && action.value() == ButtonAction::Start)
-                {
-                    s.gameState = Snake::gameOn;
-                }
-                else if (action.has_value() && action.value() == ButtonAction::Exit)
-                {
-                    window.close();
-                }
-            }
-            s.menue(menue);
-        }
-        
-        while (s.getGameState() == Snake::gameOn&&window.isOpen())
+        switch (s.getGameState())
         {
+        case Snake::Menu :{
+            renderer.menuScreen(window);
+            InputState menue=inputSystem.poll(window);
+            handleMenueInput(menue,renderer,s,window);
+            s.menu(menue);
+            break;
+        }
+        case Snake::GameOn :{
             InputState in = inputSystem.poll(window);
             s.applyInput(in);
             s.update();
             renderer.draw(window,s);
-            window.display();
+            break;
         }
-        while(s.getGameState() == Snake::end && window.isOpen())
-        {
+        case Snake::End :{
             renderer.gameOverScreen(window, s);
             InputState gameOverInput = inputSystem.poll(window);
-            if (gameOverInput.mouseClicked)
-            {
-                auto action = renderer.getClickedAction(gameOverInput.clickPosition);
-                if (action.has_value() && action.value() == ButtonAction::Start)
-                {
-                    std::cout<<"REstat\n";
-                    s.restart();
-                }
-                else if (action.has_value() && action.value() == ButtonAction::Exit)
-                {
-                    window.close();
-                }
-            }
-            s.gameOver(gameOverInput);
+            handleGameOverInput(gameOverInput,renderer,s,window);
+            s.gameOver(gameOverInput); 
+            break;
         }
-        while(s.gameState==Snake::pause&&window.isOpen()){
+        case Snake::Pause :{
             renderer.pauseScreen(window,s);
-            InputState pause=inputSystem.poll(window);
-            if (pause.mouseClicked)
-            {
-                auto action = renderer.getClickedAction(pause.clickPosition);
-                if (action.has_value() && action.value() == ButtonAction::Start)
-                {
-                    s.pauseUnpause(pause,true);
-                }
-                else if (action.has_value() && action.value() == ButtonAction::Exit)
-                {
-                    window.close();
-                }
-            }
-            s.pauseUnpause(pause,false);
+            InputState pauseInput=inputSystem.poll(window);
+            handlePauseInput(pauseInput,renderer,s,window);
+            s.pauseUnpause(pauseInput,false);
+            break;
         }
+        }
+        window.display();
     }
     window.close();
 }

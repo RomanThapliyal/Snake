@@ -8,26 +8,22 @@ using namespace std;
 void Snake::setUp()
 {
     clock.start();
-    gameState=menu;
-    gameSpeed=100;
+    gameState = Menu;
+    gameSpeed = sc::DEFAULT_GAME_SPEED;
     srand(static_cast<unsigned int>(time(nullptr)));
 
-    magnetState=Waiting;
-    magnetX=1000;
-    magnetY=1000;
-    foodX=0.0f;
-    foodY=0.0f;
-
-    magnetClock.restart();
-    frameClock.restart();
-    food();
+    magnetState = Waiting;
+    magnetX = sc::MAGNET_INACTIVE_POS;
+    magnetY = sc::MAGNET_INACTIVE_POS;
+    foodX = 0.0f;
+    foodY = 0.0f;
 }
 
 void Snake::update()
 {
-    float dt=frameClock.restart().asSeconds();
+    float dt = frameClock.restart().asSeconds();
 
-    if(clock.getElapsedTime().asMilliseconds()>=gameSpeed)
+    if(clock.getElapsedTime().asMilliseconds() >= gameSpeed)
     {
         logic();
         clock.restart();
@@ -39,12 +35,12 @@ void Snake::update()
 
 void Snake::logic()
 {
-    dir=nextDir;
+    dir = nextDir;
     calcNextHeadPos();
 
-    if(wallCollision()||bodyCollison())
+    if(wallCollision() || bodyCollision())
     {
-        gameState=end;
+        gameState = End;
         clock.stop();
         return;
     }
@@ -57,169 +53,167 @@ void Snake::logic()
 void Snake::applyInput(const InputState& in)
 {
     if(in.gridToggle)
-        grid=!grid;
-
+        grid = !grid;
     if(in.wrapToggle)
-        wrap=!wrap;
-
+        wrap = !wrap;
     if(in.pausePressed)
-        pauseUnpause(in,false);
-
+        pauseUnpause(in, false);
     if(!in.hasDirRequest)
         return;
 
-    if(in.requestedDir==Up&&dir!=Down)
-        nextDir=Up;
-    else if(in.requestedDir==Down&&dir!=Up)
-        nextDir=Down;
-    else if(in.requestedDir==Right&&dir!=Left)
-        nextDir=Right;
-    else if(in.requestedDir==Left&&dir!=Right)
-        nextDir=Left;
+    if(in.requestedDir == Up && dir != Down)
+        nextDir = Up;
+    else if(in.requestedDir == Down && dir != Up)
+        nextDir = Down;
+    else if(in.requestedDir == Right && dir != Left)
+        nextDir = Right;
+    else if(in.requestedDir == Left && dir != Right)
+        nextDir = Left;
 }
 
 void Snake::food()
 {
-    bool invalidFood=true;
+    bool invalidFood = true;
 
     while(invalidFood)
     {
-        invalidFood=false;
+        invalidFood = false;
 
-        foodX=static_cast<float>(rand()%(cols-2)+2);
-        foodY=static_cast<float>(rand()%(rows-2)+2);
+        foodX = static_cast<float>(rand() % (cols - sc::PLAY_AREA_MARGIN) + sc::PLAY_AREA_MARGIN);
+        foodY = static_cast<float>(rand() % (rows - sc::PLAY_AREA_MARGIN) + sc::PLAY_AREA_MARGIN);
 
-        for(int i=0;i<snakeLen;i++)
+        for(int i = 0; i < snakeLen; i++)
         {
-            if(static_cast<int>(foodX)==snakeX[i]&&
-               static_cast<int>(foodY)==snakeY[i])
+            if(static_cast<int>(foodX) == snakeX[i] &&
+               static_cast<int>(foodY) == snakeY[i])
             {
-                invalidFood=true;
+                invalidFood = true;
                 break;
             }
         }
 
-        if(magnetState==Available&&
-           static_cast<int>(foodX)==magnetX&&
-           static_cast<int>(foodY)==magnetY)
+        if(magnetState == Available &&
+           static_cast<int>(foodX) == magnetX &&
+           static_cast<int>(foodY) == magnetY)
         {
-            invalidFood=true;
+            invalidFood = true;
         }
     }
 }
 
 void Snake::magnet()
 {
-    const float spawnDelay=10.0f;
-    const float powerDuration=20.0f;
-    float elapsed=magnetClock.getElapsedTime().asSeconds();
+    const float spawnDelay = sc::MAGNET_SPAWN_DELAY;
+    const float powerDuration = sc::MAGNET_ACTIVE_DURATION;
+    float elapsed = magnetClock.getElapsedTime().asSeconds();
 
-    if(magnetState==Waiting)
+    if(magnetState == Waiting)
     {
-        if(elapsed>=spawnDelay)
+        if(elapsed >= spawnDelay)
         {
             spawnMagnet();
-            magnetState=Available;
+            magnetState = Available;
             magnetClock.restart();
         }
 
         return;
     }
 
-    if(magnetState==Active&&elapsed>=powerDuration)
+    if(magnetState == Active && elapsed >= powerDuration)
         deactivateMagnet();
 }
 
+
 void Snake::spawnMagnet()
 {
-    bool invalidMagnet=true;
+    bool invalidMagnet = true;
 
     while(invalidMagnet)
     {
-        invalidMagnet=false;
+        invalidMagnet = false;
 
-        magnetX=rand()%(cols-2)+2;
-        magnetY=rand()%(rows-2)+2;
+        magnetX = rand() % (cols - sc::PLAY_AREA_MARGIN) + sc::PLAY_AREA_MARGIN;
+        magnetY = rand() % (rows - sc::PLAY_AREA_MARGIN) + sc::PLAY_AREA_MARGIN;
 
-        for(int i=0;i<snakeLen;i++)
+        for(int i = 0; i < snakeLen; i++)
         {
-            if(magnetX==snakeX[i]&&magnetY==snakeY[i])
+            if(magnetX == snakeX[i] && magnetY == snakeY[i])
             {
-                invalidMagnet=true;
+                invalidMagnet = true;
                 break;
             }
         }
 
-        if(magnetX==foodX&&magnetY==foodY)
-            invalidMagnet=true;
+        if(magnetX == static_cast<int>(foodX) && magnetY == static_cast<int>(foodY))
+            invalidMagnet = true;
     }
 }
 
 void Snake::activateMagnet()
 {
-    magnetState=Active;
-    magnetX=1000;
-    magnetY=1000;
+    magnetState = Active;
+    magnetX = sc::MAGNET_INACTIVE_POS;
+    magnetY = sc::MAGNET_INACTIVE_POS;
     magnetClock.restart();
 }
 
 void Snake::deactivateMagnet()
 {
-    magnetState=Waiting;
-    magnetX=1000;
-    magnetY=1000;
+    magnetState = Waiting;
+    magnetX = sc::MAGNET_INACTIVE_POS;
+    magnetY = sc::MAGNET_INACTIVE_POS;
     magnetClock.restart();
 }
 
 void Snake::calcNextHeadPos()
 {
-    nextHeadX=snakeX[0];
-    nextHeadY=snakeY[0];
+    nextHeadX = snakeX[0];
+    nextHeadY = snakeY[0];
 
-    if(dir==Right)
+    if(dir == Right)
         nextHeadX++;
-    else if(dir==Left)
+    else if(dir == Left)
         nextHeadX--;
-    else if(dir==Up)
+    else if(dir == Up)
         nextHeadY--;
-    else if(dir==Down)
+    else if(dir == Down)
         nextHeadY++;
 }
 
 void Snake::moveSnake()
 {
-    for(int i=0;i<snakeLen;i++)
+    for(int i = 0; i < snakeLen; i++)
     {
-        prevSnakeX[i]=snakeX[i];
-        prevSnakeY[i]=snakeY[i];
+        prevSnakeX[i] = snakeX[i];
+        prevSnakeY[i] = snakeY[i];
     }
 
-    for(int i=snakeLen-1;i>0;i--)
+    for(int i = snakeLen - 1; i > 0; i--)
     {
-        snakeX[i]=snakeX[i-1];
-        snakeY[i]=snakeY[i-1];
+        snakeX[i] = snakeX[i - 1];
+        snakeY[i] = snakeY[i - 1];
     }
 
-    snakeX[0]=nextHeadX;
-    snakeY[0]=nextHeadY;
+    snakeX[0] = nextHeadX;
+    snakeY[0] = nextHeadY;
 }
 
 bool Snake::wallCollision()
 {
-    if(nextHeadX==1||nextHeadX==cols||
-       nextHeadY==1||nextHeadY==rows)
+    if(nextHeadX == sc::WALL_EDGE || nextHeadX == cols ||
+       nextHeadY == sc::WALL_EDGE || nextHeadY == rows)
     {
         if(wrap)
         {
-            if(nextHeadX==1)
-                nextHeadX=cols-1;
-            else if(nextHeadX==cols)
-                nextHeadX=2;
+            if(nextHeadX == sc::WALL_EDGE)
+                nextHeadX = cols - sc::WALL_EDGE;
+            else if(nextHeadX == cols)
+                nextHeadX = sc::PLAY_AREA_MARGIN;
 
-            if(nextHeadY==1)
-                nextHeadY=rows-1;
-            else if(nextHeadY==rows)
-                nextHeadY=2;
+            if(nextHeadY == sc::WALL_EDGE)
+                nextHeadY = rows - sc::WALL_EDGE;
+            else if(nextHeadY == rows)
+                nextHeadY = sc::PLAY_AREA_MARGIN;
 
             return false;
         }
@@ -230,11 +224,11 @@ bool Snake::wallCollision()
     return false;
 }
 
-bool Snake::bodyCollison()
+bool Snake::bodyCollision()
 {
-    for(int i=1;i<snakeLen;i++)
+    for(int i = 1; i < snakeLen; i++)
     {
-        if(nextHeadX==snakeX[i]&&nextHeadY==snakeY[i])
+        if(nextHeadX == snakeX[i] && nextHeadY == snakeY[i])
             return true;
     }
 
@@ -243,83 +237,84 @@ bool Snake::bodyCollison()
 
 void Snake::growSnake()
 {
-    oldTailX=snakeX[snakeLen-1];
-    oldTailY=snakeY[snakeLen-1];
+    oldTailX = snakeX[snakeLen - 1];
+    oldTailY = snakeY[snakeLen - 1];
 
     score++;
     snakeLen++;
 
-    if(gameSpeed>1)
-        gameSpeed-=0.1;
+    if(gameSpeed > sc::MIN_GAME_SPEED)
+        gameSpeed -= sc::SPEED_DECREMENT;
 
-    snakeX[snakeLen-1]=oldTailX;
-    snakeY[snakeLen-1]=oldTailY;
-    prevSnakeX[snakeLen-1]=oldTailX;
-    prevSnakeY[snakeLen-1]=oldTailY;
+    snakeX[snakeLen - 1] = oldTailX;
+    snakeY[snakeLen - 1] = oldTailY;
+    prevSnakeX[snakeLen - 1] = oldTailX;
+    prevSnakeY[snakeLen - 1] = oldTailY;
 }
 
 void Snake::checkFood()
 {
-    float dx=static_cast<float>(snakeX[0])-foodX;
-    float dy=static_cast<float>(snakeY[0])-foodY;
-    const float collectRadius=0.5f;
+    float dx = static_cast<float>(snakeX[0]) - foodX;
+    float dy = static_cast<float>(snakeY[0]) - foodY;
+    const float collectRadius = sc::FOOD_COLLECT_RADIUS;
 
-    if(dx*dx+dy*dy<=collectRadius*collectRadius)
+    if(dx * dx + dy * dy <= collectRadius * collectRadius)
     {
         growSnake();
         food();
     }
 }
 
+
 void Snake::checkMagnet()
 {
-    if(magnetState==Available&&
-       snakeX[0]==magnetX&&
-       snakeY[0]==magnetY)
+    if(magnetState == Available &&
+       snakeX[0] == magnetX &&
+       snakeY[0] == magnetY)
     {
         activateMagnet();
     }
 }
 
+
 void Snake::magnetEffect(float dt)
 {
-    float collectRadius=0.25f;
-    float attractionRange=4.0f;
-    float minimumPullSpeed=2.0f;
-    float pullStrength=6.0f;
-    float minimumDistance=0.0001f;
+    const float collectRadius = sc::MAGNET_COLLECT_RADIUS_SQUARED;
+    const float attractionRange = sc::MAGNET_ATTRACTION_RANGE;
+    const float minimumPullSpeed = sc::MAGNET_MIN_PULL_SPEED;
+    const float pullStrength = sc::MAGNET_PULL_STRENGTH;
+    const float minimumDistance = sc::MAGNET_MIN_DISTANCE;
 
-    if(magnetState!=Active)
-        return;
+    if(magnetState != Active) return;
 
-    float dx=static_cast<float>(snakeX[0])-foodX;
-    float dy=static_cast<float>(snakeY[0])-foodY;
-    float distanceSquared=dx*dx+dy*dy;
+    float dx = static_cast<float>(snakeX[0]) - foodX;
+    float dy = static_cast<float>(snakeY[0]) - foodY;
+    float distanceSquared = dx * dx + dy * dy;
 
-    if(distanceSquared<=collectRadius*collectRadius)
+    if(distanceSquared <= collectRadius * collectRadius)
     {
         growSnake();
         food();
         return;
     }
 
-    float distance=sqrt(distanceSquared);
+    float distance = sqrt(distanceSquared);
 
-    if(distance>attractionRange||distance<=minimumDistance)
+    if(distance > attractionRange || distance <= minimumDistance)
         return;
 
-    float speed=minimumPullSpeed+(attractionRange-distance)*pullStrength;
+    float speed = minimumPullSpeed + (attractionRange - distance) * pullStrength;
 
-    foodX+=(dx/distance)*speed*dt;
-    foodY+=(dy/distance)*speed*dt;
+    foodX += (dx / distance) * speed * dt;
+    foodY += (dy / distance) * speed * dt;
 }
 
-void Snake::menue(const InputState& menue)
+void Snake::menu(const InputState& menue)
 {
     if(menue.startPressed)
-        gameState=gameOn;
+        gameState = GameOn;
     else if(menue.exitPressed)
-        gameState=exit;
+        gameState = Exit;
 }
 
 void Snake::gameOver(const InputState& in)
@@ -327,145 +322,142 @@ void Snake::gameOver(const InputState& in)
     if(in.restartPressed)
         restart();
     else if(in.exitPressed)
-        gameState=exit;
+        gameState = Exit;
 }
 
 void Snake::restart()
 {
-    gameSpeed=100;
-    score=0;
-    snakeLen=3;
-    gameState=gameOn;
-    dir=Right;
-    nextDir=Right;
+    gameSpeed = sc::DEFAULT_GAME_SPEED;
+    score = sc::INITIAL_SCORE;
+    snakeLen = sc::INITIAL_SNAKE_LENGTH;
+    gameState = GameOn;
+    dir = Right;
+    nextDir = Right;
 
-    magnetState=Waiting;
-    magnetX=1000;
-    magnetY=1000;
-    foodX=0.0f;
-    foodY=0.0f;
+    magnetState = Waiting;
+    magnetX = sc::MAGNET_INACTIVE_POS;
+    magnetY = sc::MAGNET_INACTIVE_POS;
+    foodX = 0.0f;
+    foodY = 0.0f;
 
     clock.restart();
     frameClock.restart();
     magnetClock.restart();
 
-    for(int i=0;i<maxSnakeLength;i++)
+    for(int i = 0; i < maxSnakeLength; i++)
     {
-        snakeX[i]=0;
-        snakeY[i]=0;
-        prevSnakeX[i]=0;
-        prevSnakeY[i]=0;
+        snakeX[i] = 0;
+        snakeY[i] = 0;
+        prevSnakeX[i] = 0;
+        prevSnakeY[i] = 0;
     }
 
-    for(int i=0;i<snakeLen;i++)
+    for(int i = 0; i < snakeLen; i++)
     {
-        snakeX[i]=9-i;
-        snakeY[i]=6;
-        prevSnakeX[i]=snakeX[i];
-        prevSnakeY[i]=snakeY[i];
+        snakeX[i] = 9 - i;
+        snakeY[i] = 6;
+        prevSnakeX[i] = snakeX[i];
+        prevSnakeY[i] = snakeY[i];
     }
 
     food();
 }
 
-void Snake::pauseUnpause(const InputState& pauseInput,bool resume)
+void Snake::pauseUnpause(const InputState& pauseInput, bool resume)
 {
-    if(pauseInput.pausePressed||resume)
+    if(pauseInput.pausePressed || resume)
     {
-        if(gameState==pause)
+        if(gameState == Pause)
         {
             clock.start();
             frameClock.start();
             magnetClock.start();
-            gameState=gameOn;
+            gameState = GameOn;
         }
         else
         {
             clock.stop();
             frameClock.stop();
             magnetClock.stop();
-            gameState=pause;
+            gameState = Pause;
         }
     }
 }
 
-int Snake::getScore()const
+int Snake::getScore() const
 {
     return score;
 }
 
-int Snake::getSnakeLen()const
+int Snake::getSnakeLen() const
 {
     return snakeLen;
 }
 
-float Snake::getCellSize()const
+float Snake::getCellSize() const
 {
     return cellSize;
 }
 
-int Snake::getRows()const
+int Snake::getRows() const
 {
     return rows;
 }
 
-int Snake::getCols()const
+int Snake::getCols() const
 {
     return cols;
 }
 
-float Snake::getFoodX()const
+float Snake::getFoodX() const
 {
     return foodX;
 }
 
-float Snake::getFoodY()const
+float Snake::getFoodY() const
 {
     return foodY;
 }
 
-int Snake::getMagnetX()const
+int Snake::getMagnetX() const
 {
     return magnetX;
 }
 
-int Snake::getMagnetY()const
+int Snake::getMagnetY() const
 {
     return magnetY;
 }
 
-float Snake::getInterPolation()const
+float Snake::getInterpolation() const
 {
-    float t=clock.getElapsedTime().asMilliseconds()/
-            static_cast<float>(gameSpeed);
-
-    if(t>1.0f)
-        t=1.0f;
-
+    float t = clock.getElapsedTime().asMilliseconds()/static_cast<float>(gameSpeed);
+    if(t > 1.0f)
+        t = 1.0f;
     return t;
 }
 
-Snake::Direction Snake::getDir()const
+Snake::Direction Snake::getDir() const
 {
     return dir;
 }
 
-Snake::Direction Snake::getNextDir()const
+Snake::Direction Snake::getNextDir() const
 {
     return nextDir;
 }
 
-Snake::GameState Snake::getGameState()const
+Snake::GameState Snake::getGameState() const
 {
     return gameState;
 }
 
-bool Snake::getMagnetPowerActive()const
+bool Snake::getMagnetPowerActive() const
 {
-    return magnetState==Active;
+    return magnetState == Active;
 }
 
-Snake::MagnetState Snake::getMagnetState()const
+Snake::MagnetState Snake::getMagnetState() const
 {
     return magnetState;
 }

@@ -1,11 +1,12 @@
 #include "Renderer.hpp"
 #include <iostream>
 void Renderer::setUp(){
-    if (!gamefont.openFromFile("Assets/Fonts/PressStart2P-Regular.ttf"))
+    if (!gameFont.openFromFile("Assets/Fonts/PressStart2P-Regular.ttf"))
     std::cout << "failed to load font\n";
 }
 void Renderer::draw(sf::RenderWindow& window,const Snake& snake)
 {
+    buttons.clear();
     window.clear(GameColours::Black);
     if(snake.grid)
         drawGrid(window,snake);
@@ -13,11 +14,11 @@ void Renderer::draw(sf::RenderWindow& window,const Snake& snake)
     drawWalls(window,snake);
     drawFood(window,snake);
     drawMagnet(window,snake);
-    drawText(window,gamefont,"Score:"+std::to_string(snake.getScore()),34,Anchor::TopRight,GameColours::White,{-50.f,-50.f});
+    drawText(window,gameFont,"Score:"+std::to_string(snake.getScore()),34,Anchor::TopRight,GameColours::White,{-50.f,-50.f});
     if(snake.wrap)
-        drawText(window,gamefont,"Wrap",14,Anchor::TopRight,GameColours::White,{-70.f,-100.f});
+        drawText(window,gameFont,"Wrap",14,Anchor::TopRight,GameColours::White,{-70.f,-100.f});
     if(snake.grid)
-        drawText(window,gamefont,"Grid",14,Anchor::TopRight,GameColours::White,{-70.f,-140.f});
+        drawText(window,gameFont,"Grid",14,Anchor::TopRight,GameColours::White,{-70.f,-140.f});
 }
 
 void Renderer::drawGrid(sf::RenderWindow &window, const Snake &snake){
@@ -43,7 +44,7 @@ void Renderer::drawSnake(sf::RenderWindow &window,const Snake& snake)
         else
             segment.setFillColor(sf::Color(0,180,0));
 
-        float t=snake.getInterPolation();
+        float t=snake.getInterpolation();
 
         float renderX=snake.prevSnakeX[i]+(snake.snakeX[i]-snake.prevSnakeX[i])*t;
         float renderY=snake.prevSnakeY[i]+(snake.snakeY[i]-snake.prevSnakeY[i])*t;
@@ -67,7 +68,7 @@ void Renderer::drawSnake(sf::RenderWindow &window,const Snake& snake)
                 renderY=snake.getRows()-1+t;
         }
 
-        if(snake.gameState==snake.end){
+        if(snake.gameState==snake.End){
             renderX=snake.snakeX[i];
             renderY=snake.snakeY[i];
         }
@@ -104,7 +105,7 @@ void Renderer::drawSnake(sf::RenderWindow &window,const Snake& snake)
             window.draw(segment);
         }
         if (i == 0)
-{
+    {  
     float cell = snake.getCellSize();
 
     sf::CircleShape eye(cell * 0.15f);
@@ -161,9 +162,10 @@ void Renderer::drawSnake(sf::RenderWindow &window,const Snake& snake)
         window.draw(eye);
         window.draw(pupil);
     }
-}
+    }
     }
 }
+
 void Renderer::drawWalls(sf::RenderWindow &window,const Snake& snake)
 {
     for (int i = 1; i <= snake.getRows(); i++)
@@ -182,6 +184,7 @@ void Renderer::drawWalls(sf::RenderWindow &window,const Snake& snake)
         }
     }
 }
+
 void Renderer::drawFood(sf::RenderWindow& window,const Snake& snake)
 {
     float cell=snake.getCellSize();
@@ -202,10 +205,11 @@ void Renderer::drawFood(sf::RenderWindow& window,const Snake& snake)
     fruit.setPosition({centerX-fruitRadius,centerY-fruitRadius});
     window.draw(fruit);
 }
+
 void Renderer::drawMagnet(sf::RenderWindow& window,const Snake& snake)
 {
     if(snake.getMagnetPowerActive())
-       drawText(window,gamefont,"MAGNET",18,Anchor::TopLeft,GameColours::Yellow,{20.f,-20.f});
+       drawText(window,gameFont,"MAGNET",18,Anchor::TopLeft,GameColours::Yellow,{20.f,-20.f});
     if(snake.getMagnetState()!=Snake::Available)
         return;
 
@@ -225,7 +229,7 @@ void Renderer::drawMagnet(sf::RenderWindow& window,const Snake& snake)
     magnet.setPosition({centerX-magnetRadius,centerY-magnetRadius});
     window.draw(magnet);
 
-    drawText(window,gamefont,"M",20,Anchor::none,GameColours::White,{centerX,centerY});
+    drawText(window,gameFont,"M",20,Anchor::none,GameColours::White,{centerX,centerY});
 }
 
 void Renderer::drawText(sf::RenderWindow &window,const sf::Font &font,std::string text,int size,Anchor anchor,sf::Color colour,sf::Vector2f offset)
@@ -263,57 +267,56 @@ void Renderer::drawButton(sf::RenderWindow &window, std::string label,sf::Color 
     rect.setOutlineThickness(2.f);
     window.draw(rect);
 
-    sf::Text text(gamefont);
+    sf::Text text(gameFont);
     text.setString(label);
     text.setCharacterSize(18);
     text.setFillColor(sf::Color::White);
     sf::FloatRect textBounds = text.getLocalBounds();
     text.setPosition({x + (size.x - textBounds.size.x) / 2.f, y + (size.y - textBounds.size.y) / 2.f});
     window.draw(text);
-    menuButtons.push_back({sf::FloatRect({x,y},size),action});
+    buttons.push_back({sf::FloatRect({x,y},size),action});
 }
+
 std::optional<ButtonAction> Renderer::getClickedAction(sf::Vector2f clickPos)
 { 
-    for (const Button& b : menuButtons)
+    for (const Button& b : buttons)
     {
         if (b.bounds.contains(clickPos))
         {
-            std::cout<<"Button clicked\n";
             return b.action;
         }
     }
     return std::nullopt;
 }
 void Renderer::gameOverScreen(sf::RenderWindow& window,const Snake &snake){
+    buttons.clear();
     draw(window,snake);
     sf::RectangleShape overlay({static_cast<float>(window.getSize().x),static_cast<float>(window.getSize().y)});
     overlay.setFillColor(sf::Color(0,0,0,150));
     window.draw(overlay);
-    drawText(window, gamefont, "Game Over", 50,Anchor::Center,GameColours::Red,{0.f,0.f});
-    drawText(window, gamefont, "Score:" + std::to_string(snake.getScore()), 40, Anchor::Center,GameColours::White,{0.f,-100.f});
+    drawText(window, gameFont, "Game Over", 50,Anchor::Center,GameColours::Red,{0.f,0.f});
+    drawText(window, gameFont, "Score:" + std::to_string(snake.getScore()), 40, Anchor::Center,GameColours::White,{0.f,-100.f});
     drawButton(window,"Restart",GameColours::Magenta,Anchor::BottomLeft,{600.f,190.f},{180.f,50.f},ButtonAction::Start);
     drawButton(window,"Quit",GameColours::Magenta,Anchor::BottomRight,{-600.f,190.f},{180.f,50.f},ButtonAction::Exit);
-    window.display();
 }
-void Renderer::menueScreen(sf::RenderWindow& window){
+void Renderer::menuScreen(sf::RenderWindow& window){
+    buttons.clear();
     window.clear(GameColours::Black);
-    drawText(window,gamefont,"Snaky",55,Anchor::Center,GameColours::Green,{0.f,30.f});
-    drawText(window,gamefont,"Developer's first 2D snake game made in C++!",20,Anchor::Center,GameColours::Yellow,{0.f,-40.f});
-    drawText(window,gamefont,"Press enter to start or X to exit",15,Anchor::Center,GameColours::White,{0.f,-110.f});
+    drawText(window,gameFont,"Snaky",55,Anchor::Center,GameColours::Green,{0.f,30.f});
+    drawText(window,gameFont,"Developer's first 2D snake game made in C++!",20,Anchor::Center,GameColours::Yellow,{0.f,-40.f});
+    drawText(window,gameFont,"Press enter to start or X to exit",15,Anchor::Center,GameColours::White,{0.f,-110.f});
     drawButton(window,"Start",GameColours::Magenta,Anchor::BottomLeft,{600.f,190.f},{180.f,50.f},ButtonAction::Start);
     drawButton(window,"Quit",GameColours::Magenta,Anchor::BottomRight,{-600.f,190.f},{180.f,50.f},ButtonAction::Exit);
-    drawText(window, gamefont, "WASD / Arrow Keys: Move | G: Toggle Grid | P: Pause | T: Toggle Wrap", 9 ,Anchor::BottomLeft, GameColours::White,{50.f,30.f});
-    window.display();
+    drawText(window, gameFont, "WASD / Arrow Keys: Move | G: Toggle Grid | P: Pause | T: Toggle Wrap", 9 ,Anchor::BottomLeft, GameColours::White,{50.f,30.f});
 }
 void Renderer::pauseScreen(sf::RenderWindow& window, const Snake &snake){
+    buttons.clear();
     draw(window,snake);
     sf::RectangleShape overlay({static_cast<float>(window.getSize().x),static_cast<float>(window.getSize().y)});
     overlay.setFillColor(sf::Color(0,0,0,150));
     window.draw(overlay);
 
-    drawText(window,gamefont,"Paused",60,Anchor::Center,GameColours::Yellow,{0.f,30.f});
+    drawText(window,gameFont,"Paused",60,Anchor::Center,GameColours::Yellow,{0.f,30.f});
     drawButton(window,"Resume",GameColours::Magenta,Anchor::BottomLeft,{600.f,190.f},{180.f,50.f},ButtonAction::Start);
     drawButton(window,"Quit",GameColours::Magenta,Anchor::BottomRight,{-600.f,190.f},{180.f,50.f},ButtonAction::Exit);
-
-    window.display();
 }

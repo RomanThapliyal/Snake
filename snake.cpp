@@ -11,11 +11,11 @@ public:
     bool snakeFound = false;
     enum GameState
     {
-        menu,
-        gameOn,
-        end
+        Menu,
+        GameOn,
+        End
     };
-    GameState gameState = gameOn;
+    GameState gameState = GameOn;
     int screenlen = 30, screenbred = 30;
     int snakeLen = 3;
     enum Direction
@@ -36,7 +36,7 @@ public:
         while (_kbhit() == false)
         {
         };
-        gameState = gameOn;
+        gameState = GameOn;
     }
     void setUp()
     {
@@ -92,9 +92,9 @@ public:
     void logic()
     {
         calcNextHeadPos();
-        if (wallCollision() || bodyCollison())
+        if (wallCollision() || bodyCollision())
         {
-            gameState = end;
+            gameState = End;
             return;
         }
         moveSnake();
@@ -194,7 +194,7 @@ public:
         }
         return false;
     }
-    bool bodyCollison()
+    bool bodyCollision()
     {
         for (int i = 1; i < snakeLen; i++)
         {
@@ -227,7 +227,7 @@ int main()
     Snake s;
     s.start();
     s.setUp();
-    while (s.gameState == Snake::gameOn)
+    while (s.gameState == Snake::GameOn)
     {
         s.input();
         s.update();

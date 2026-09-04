@@ -10,8 +10,8 @@ struct Button{
 class Renderer
 {
 private:
-    sf::Font gamefont;
-    std::vector<Button> menuButtons;
+    sf::Font gameFont;
+    std::vector<Button> buttons;
 public:
     void setUp();
     void draw(sf::RenderWindow &window, const Snake &snake);
@@ -24,6 +24,6 @@ public:
     void drawButton(sf::RenderWindow &window, std::string label,sf::Color color, Anchor anchor, sf::Vector2f offset, sf::Vector2f size, ButtonAction action);
     std::optional<ButtonAction> getClickedAction(sf::Vector2f clickPos);
     void gameOverScreen(sf::RenderWindow& window,const Snake &snake);
-    void menueScreen(sf::RenderWindow& window);
+    void menuScreen(sf::RenderWindow& window);
     void pauseScreen(sf::RenderWindow& window,const Snake &snake);
 };
